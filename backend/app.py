@@ -4,7 +4,7 @@ from pytube import YouTube
 import os
 
 app = Flask(__name__, static_folder='../frontend/build', static_url_path='/')
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins
 
 # Serve the React app
 @app.route("/", defaults={"path": ""})
@@ -42,6 +42,5 @@ def download_video():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    # Render provides the PORT environment variable
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
