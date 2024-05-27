@@ -4,13 +4,14 @@ from pytube import YouTube
 import os
 
 app = Flask(__name__, static_folder='../frontend/build', static_url_path='/')
-CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins
+CORS(app, supports_credentials=True)  # Enable CORS with credentials
 
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', '*')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
     return response
 
 # Serve the React app
@@ -22,8 +23,17 @@ def serve_react_app(path):
     else:
         return send_from_directory(app.static_folder, 'index.html')
 
-@app.route('/download', methods=['POST'])
+@app.route('/download', methods=['POST', 'OPTIONS'])
 def download_video():
+    if request.method == 'OPTIONS':
+        # Provide appropriate headers for OPTIONS request
+        response = app.make_default_options_response()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response
+
     data = request.json
     url = data['url']
     format = data['format']
