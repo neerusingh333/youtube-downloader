@@ -4,7 +4,14 @@ from pytube import YouTube
 import os
 
 app = Flask(__name__, static_folder='../frontend/build', static_url_path='/')
-#CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins
+CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 # Serve the React app
 @app.route("/", defaults={"path": ""})
@@ -23,21 +30,15 @@ def download_video():
 
     try:
         yt = YouTube(url)
-        if format == '360p':
-            stream = yt.streams.filter(res="360p", file_extension='mp4').first()
-        elif format == '480p':
-            stream = yt.streams.filter(res="480p", file_extension='mp4').first()
-        elif format == '720p':
-            stream = yt.streams.filter(res="720p", file_extension='mp4').first()
-        else:
-            return jsonify({"error": "Invalid format"}), 400
+        stream = yt.streams.filter(res=format, file_extension='mp4').first()
 
-        if stream:
-            file_path = 'video.mp4'
-            stream.download(filename=file_path)
-            return send_file(file_path, as_attachment=True)
-        else:
+        if not stream:
             return jsonify({"error": "Stream not found"}), 404
+
+        file_path = 'video.mp4'
+        stream.download(filename=file_path)
+        return send_file(file_path, as_attachment=True)
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
