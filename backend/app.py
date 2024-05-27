@@ -6,6 +6,10 @@ import os
 app = Flask(__name__, static_folder='../frontend/build', static_url_path='/')
 CORS(app, supports_credentials=True)  # Enable CORS with credentials
 
+@app.errorhandler(404)
+def not_found(e):
+    return send_from_directory(app.static_folder, 'index.html')
+
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', '*')
